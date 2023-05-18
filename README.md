@@ -16,4 +16,6 @@ This issue does not arise when using **generic** animation.
 
 ## Solution
 
-TODO
+This issue can be temporarily fixed by manually collect and apply root motion data.
+
+See: [ModifyVelocityTest_TempFix.cs](./Assets/ModifyVelocityTest_TempFix.cs).
