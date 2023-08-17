@@ -93,7 +93,7 @@ public class ModifyVelocityTest_TempFix : MonoBehaviour
         // The values of FrameData.deltaTime and AnimationStream.deltaTime are not affected by Time.timeScale.
         // However, when calculating animation data in the Animation Playable, Time.timeScale has already been introduced,
         // so there is no need to handle Time.timeScale separately in this case.
-        //ApplyComponentSpaceVelocity(m_animator, m_velocityRef.Value, m_angularVelocityRef.Value, m_deltaTimeRef.Value);
+        ApplyComponentSpaceVelocity(m_animator, m_velocityRef.Value, m_angularVelocityRef.Value, m_deltaTimeRef.Value);
     }
 
     private void LateUpdate()
@@ -126,10 +126,9 @@ public class ModifyVelocityTest_TempFix : MonoBehaviour
         Vector3 compSpaceVelocity, Vector3 compSpaceAngularVelocityInRadian, float deltaTime)
     {
         var targetTransform = target.transform;
-        var compSpaceDeltaRotation = Quaternion.Euler(compSpaceAngularVelocityInRadian * Mathf.Rad2Deg * deltaTime);
-        var worldSpaceDeltaPosition = targetTransform.TransformDirection(compSpaceVelocity) * deltaTime;
+        var worldSpaceDeltaPosition = targetTransform.TransformVector(compSpaceVelocity) * deltaTime;
         // 先转换worldSpaceDeltaPosition，再真正施加旋转，动画会和ApplyBuiltinRootMotion更接近
-        targetTransform.rotation = compSpaceDeltaRotation * targetTransform.rotation;
+        targetTransform.Rotate(compSpaceAngularVelocityInRadian * Mathf.Rad2Deg * deltaTime, Space.Self);
         targetTransform.position += worldSpaceDeltaPosition;
     }
 }
