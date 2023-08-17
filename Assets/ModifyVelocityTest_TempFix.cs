@@ -10,14 +10,21 @@ public struct AnimationRootJob : IAnimationJob
 {
     public NativeReference<Vector3> m_velocityRef;
     public NativeReference<Vector3> m_angularVelocityRef;
-    public NativeReference<float> m_deltaTimeRef;
+    // public NativeReference<float> m_deltaTimeRef;
 
     // Collect root motion data here
     public void ProcessRootMotion(AnimationStream stream)
     {
-        m_velocityRef.Value = stream.velocity;
-        m_angularVelocityRef.Value = stream.angularVelocity;
-        m_deltaTimeRef.Value = stream.deltaTime;
+        var scaleFactor = 1.0f;
+        if (stream.isHumanStream)
+        {
+            var humanStream = stream.AsHuman();
+            scaleFactor = humanStream.humanScale;
+        }
+
+        m_velocityRef.Value = stream.velocity * scaleFactor;
+        m_angularVelocityRef.Value = stream.angularVelocity * scaleFactor;
+        // m_deltaTimeRef.Value = stream.deltaTime;
     }
 
     public void ProcessAnimation(AnimationStream stream) { }
@@ -38,7 +45,7 @@ public class ModifyVelocityTest_TempFix : MonoBehaviour
 
     private NativeReference<Vector3> m_velocityRef;
     private NativeReference<Vector3> m_angularVelocityRef;
-    private NativeReference<float> m_deltaTimeRef;
+    // private NativeReference<float> m_deltaTimeRef;
 
 
     private void Awake()
@@ -61,12 +68,12 @@ public class ModifyVelocityTest_TempFix : MonoBehaviour
         // AnimationRootJob(Collect root motion data)
         m_velocityRef = new NativeReference<Vector3>(Allocator.Persistent);
         m_angularVelocityRef = new NativeReference<Vector3>(Allocator.Persistent);
-        m_deltaTimeRef = new NativeReference<float>(Allocator.Persistent);
+        // m_deltaTimeRef = new NativeReference<float>(Allocator.Persistent);
         var rootJobData = new AnimationRootJob
         {
             m_velocityRef = m_velocityRef,
             m_angularVelocityRef = m_angularVelocityRef,
-            m_deltaTimeRef = m_deltaTimeRef,
+            // m_deltaTimeRef = m_deltaTimeRef,
         };
         m_rootAsp = AnimationScriptPlayable.Create(m_graph, rootJobData);
         m_rootAsp.AddInput(m_asp, 0, 1f);
@@ -93,7 +100,11 @@ public class ModifyVelocityTest_TempFix : MonoBehaviour
         // The values of FrameData.deltaTime and AnimationStream.deltaTime are not affected by Time.timeScale.
         // However, when calculating animation data in the Animation Playable, Time.timeScale has already been introduced,
         // so there is no need to handle Time.timeScale separately in this case.
-        ApplyComponentSpaceVelocity(m_animator, m_velocityRef.Value, m_angularVelocityRef.Value, m_deltaTimeRef.Value);
+        // see: https://docs.unity3d.com/ScriptReference/Playables.FrameData-deltaTime.html
+        var deltaTime = m_graph.GetTimeUpdateMode() == DirectorUpdateMode.Manual
+            ? 0f // TODO You need to manually record you manual_delta_time !
+            : Time.unscaledDeltaTime; 
+        ApplyComponentSpaceVelocity(m_animator, m_velocityRef.Value, m_angularVelocityRef.Value, deltaTime);
     }
 
     private void LateUpdate()
@@ -116,10 +127,10 @@ public class ModifyVelocityTest_TempFix : MonoBehaviour
             m_angularVelocityRef.Dispose();
         }
 
-        if (m_deltaTimeRef.IsCreated)
-        {
-            m_deltaTimeRef.Dispose();
-        }
+        // if (m_deltaTimeRef.IsCreated)
+        // {
+        //     m_deltaTimeRef.Dispose();
+        // }
     }
 
     public static void ApplyComponentSpaceVelocity(Animator target,
