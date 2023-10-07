@@ -1,5 +1,10 @@
 # Unity-Bug-Report-Playable-IN-41394
 
+**Unity has stated that they will not fix this bug.**
+
+> RESOLUTION NOTE:
+Thank you for bringing this issue to our attention. Unfortunately, after careful consideration we will not be addressing your issue at this time, as we are currently committed to resolving other higher-priority issues, as well as delivering the new animation system. Our priority levels are determined by factors such as the severity and frequency of an issue and the number of users affected by it. However we know each case is different, so please continue to log any issues you find, as well as provide any general feedback on our roadmap page to help us prioritize.
+
 ## About this issue
 
 When using **humanoid** animation, modifying the `velocity` property through `AnimationStream` did not take effect as expected.
